@@ -1,0 +1,148 @@
+import java.io.*;
+public class WordAnalyzer {
+    //is Letter？
+    private boolean isLetter(char s){
+        if((s>='a'&&s<='z')||(s>='A'&&s<='Z')){
+            return true;
+        }
+        else return false;
+    }
+    //is Op?
+    private boolean isOp(char s,char[] op){
+        boolean flag=false;
+        for(int i=0;i<op.length;i++){
+            if(s==op[i]){
+                flag=true;
+                break;
+            }
+        }
+        return flag;
+    }
+    //is Divide?
+    private boolean isDivide(char s,char[] divide){
+        boolean flag=false;
+        int i;
+        for(i=0;i<divide.length;i++){
+            if(s==divide[i]){
+                flag=true;
+                break;
+            }
+        }
+        return flag;
+    }
+    //is num?
+    private boolean isNum(char s){
+        if(Character.isDigit(s)){
+            return true;
+        }
+        else return false;
+    }
+    //is keyWords?
+    private boolean isKeyword(String s,String[] keyword){
+        boolean flag=false;
+        int i;
+        for(i=0;i<keyword.length-1;i++){
+            if(s.equals(keyword[i])){
+                flag=true;
+            }
+        }
+        return flag;
+    }
+    //将输入txt文件转为字符串
+    private String transferTxtToString(File file)throws IOException {
+        StringBuilder stringBuilder=new StringBuilder();
+        BufferedReader bufferedReader=new BufferedReader(new FileReader(file));
+        String s=null;
+        while ((s = bufferedReader.readLine()) != null) {
+            stringBuilder.append(s+'\n');
+        }
+        bufferedReader.close();
+        return stringBuilder.toString();
+    }
+    
+    public void wordAnalyze(String[] keywords,char[] op,char[] divide,File file) throws IOException {
+        WordAnalyzer wordAnalyzer2=new WordAnalyzer();
+        String sourceWord=wordAnalyzer2.transferTxtToString(file);
+        char[] charSouce=sourceWord.toCharArray();//字符数组
+        int index;
+        String tempWord="";
+        //循环扫描全部字符
+        for(index=0;index<charSouce.length;index++){
+            //若扫描第一个为字母
+            if(wordAnalyzer2.isLetter(charSouce[index])){
+                tempWord+=charSouce[index];//存入临时字符串
+                //读取下一字符，直至不为字符或数字
+                while (wordAnalyzer2.isLetter(charSouce[index+1])||wordAnalyzer2.isNum(charSouce[index+1])){
+                    index++;
+                    tempWord+=charSouce[index];
+                 }
+                 //判断是否在关键字列表中，若不在则为标识符
+                 if(wordAnalyzer2.isKeyword(tempWord,keywords)==true){
+                     System.out.println("<关键字，"+tempWord+">");
+                 }
+                 else {
+                     System.out.println("<标识符,"+tempWord+">");
+                 }
+             }
+             //若扫描首个字节为数字
+             else if(wordAnalyzer2.isNum(charSouce[index])){
+                 //判断首字符为0，则为十六进制或八进制
+                 if(charSouce[index]=='0'){
+                     tempWord+=charSouce[index];
+                     if(charSouce[index+1]=='x'){
+                         index++;
+                         tempWord+=charSouce[index];
+                         while (wordAnalyzer2.isNum(charSouce[index+1])||wordAnalyzer2.isLetter(charSouce[index+1])){
+                             index++;
+                             tempWord+=charSouce[index];
+                         }
+                         System.out.println("<十六进制整数,"+tempWord+">");
+                     }
+                     else {
+                         while (wordAnalyzer2.isNum(charSouce[index+1])){
+                             index++;
+                             tempWord+=charSouce[index];
+                         }
+                         System.out.println("<八进制整数,"+tempWord+">");
+                     }
+                 }
+                 else {
+                     tempWord += charSouce[index];
+                     while (wordAnalyzer2.isNum(charSouce[index + 1])) {
+                         index++;
+                         tempWord += charSouce[index];
+                     }
+                     System.out.println("<十进制整数，" + tempWord + ">");
+                 }
+             }
+             //若扫描首字符不是字母也不是数字也不是空格，则判断是否为界符或运算符
+             else if(charSouce[index]!=' '){
+                 if(wordAnalyzer2.isDivide(charSouce[index],divide)){
+                     System.out.println("<界符,"+charSouce[index]+">");
+                 }
+                 else if(wordAnalyzer2.isOp(charSouce[index],op)){
+                     tempWord+=charSouce[index];
+                     if(charSouce[index]=='+'&&charSouce[index+1]=='+'){
+                         tempWord+=charSouce[index+1];
+                         System.out.println("<运算符,"+tempWord+">");
+                     }
+                     else if(charSouce[index]=='-'&&charSouce[index+1]=='-'){
+                         tempWord+=charSouce[index+1];
+                         System.out.println("<运算符,"+tempWord+">");
+                     }
+                     else if(charSouce[index]=='<'&&charSouce[index+1]=='='){
+                         tempWord+=charSouce[index+1];
+                         System.out.println("<运算符,"+tempWord+">");
+                     }
+                     else if(charSouce[index]=='>'&&charSouce[index+1]=='='){
+                         tempWord+=charSouce[index+1];
+                         System.out.println("<运算符,"+tempWord+">");
+                     }
+                     else {
+                         System.out.println("<运算符,"+tempWord+">");
+                     }
+             }
+         }
+             tempWord="";
+    }
+}}
